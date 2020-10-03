@@ -1,7 +1,12 @@
+import 'dart:io';
 import 'dart:math';
 
+import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:localstorage/localstorage.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share/share.dart';
 
 void main() {
   runApp(MyApp());
@@ -60,7 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List numerosRifa;
   int numeroAtual;
 
-  Map<String, int> bancoAssociados = new Map<String, int>();
+  Map<String, int> bancoAssociados;
 
   @override
   void initState() {
@@ -70,10 +75,17 @@ class _MyHomePageState extends State<MyHomePage> {
       storage.setItem('numeros', new List<int>.generate(10, (i) => i + 1));
     }
 
+    if (associados.getItem('lista') == null) {
+      associados.setItem('lista', new Map<String, int>());
+    }
+
     var numbers = storage.getItem('numeros') as List;
+    var listaAssociados =
+        new Map<String, int>.from(associados.getItem('lista'));
 
     setState(() {
       numerosRifa = numbers;
+      bancoAssociados = listaAssociados;
     });
 
     this.proximoNumero();
@@ -92,7 +104,8 @@ class _MyHomePageState extends State<MyHomePage> {
       numerosRifa.remove(numeroAtual);
       storage.setItem('numeros', numerosRifa);
 
-//      bancoAssociados.addAll([]);
+      bancoAssociados[_ctlNome.text] = numeroAtual;
+      associados.setItem('lista', bancoAssociados);
     });
 
     if (numerosRifa.length > 0) {
@@ -122,7 +135,98 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildLista() {
-    return Text('todo');
+    return SingleChildScrollView(
+        child: SafeArea(
+            minimum: const EdgeInsets.only(bottom: 20.0),
+            child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    if (bancoAssociados.length == 0)
+                      Text(
+                        'Nenhum nome associado',
+                        style: Theme.of(context).textTheme.headline4,
+                      ),
+                    if (bancoAssociados.length > 0)
+                      FlatButton(
+                        onPressed: () async {
+                          List<List<dynamic>> lista = new List<List<dynamic>>();
+
+                          bancoAssociados.forEach((key, value) {
+                            lista.add([key, value]);
+                          });
+
+                          String csv =
+                              const ListToCsvConverter().convert(lista);
+
+                          final directory =
+                              await getApplicationDocumentsDirectory();
+                          final pathOfTheFileToWrite =
+                              directory.path + "/rifa-nomes.csv";
+                          File file = File(pathOfTheFileToWrite);
+                          await file.writeAsString(csv);
+
+                          Share.shareFiles([file.path]);
+                        },
+                        padding: const EdgeInsets.all(24.0),
+                        color: Colors.blue,
+                        highlightColor: Colors.transparent,
+                        textColor: const Color(0xFFFFFFFF),
+                        shape: const Border(),
+                        child: Text('Exportar como CSV'),
+                      ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Table(
+                      children: [
+                        if (bancoAssociados != null)
+                          for (var x in bancoAssociados.keys)
+                            TableRow(children: [
+                              TableCell(
+                                  child: Container(
+                                      color: (bancoAssociados[x] % 2 == 0) ? Colors.grey : Colors.white,
+                                      child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceAround,
+                                          children: [
+                                            SizedBox(
+                                              width: 120.0,
+                                              child: Text(x),
+                                            ),
+                                            Text(bancoAssociados[x].toString()),
+                                            FlatButton(
+                                              onPressed: () async {
+                                                setState(() {
+                                                  numerosRifa
+                                                      .add(bancoAssociados[x]);
+
+                                                  bancoAssociados.remove(x);
+                                                  associados.setItem(
+                                                      'lista', bancoAssociados);
+
+                                                  storage.setItem(
+                                                      'numeros', numerosRifa);
+                                                });
+
+                                                proximoNumero();
+                                              },
+                                              padding:
+                                                  const EdgeInsets.all(0.0),
+                                              color: Colors.red,
+                                              highlightColor:
+                                                  Colors.transparent,
+                                              textColor:
+                                                  const Color(0xFFFFFFFF),
+                                              shape: const Border(),
+                                              child: Text('Remover'),
+                                            )
+                                          ])))
+                            ]),
+                      ],
+                    )
+                  ],
+                ))));
   }
 
   Widget _buildCriacao() {
@@ -154,9 +258,15 @@ class _MyHomePageState extends State<MyHomePage> {
                     keyboardAppearance: Brightness.light,
                     textInputAction: TextInputAction.done,
                     maxLength: 100,
+                    inputFormatters: [
+                      UpperCaseTextFormatter(),
+                    ],
                     validator: (value) {
                       if (value.isEmpty) {
                         return 'Informe o nome';
+                      }
+                      if (bancoAssociados[value] != null) {
+                        return 'Este nome já está associado ao número ${bancoAssociados[value]}';
                       }
                       return null;
                     },
@@ -246,6 +356,17 @@ class ConstrainedText extends StatelessWidget {
         ),
         child: child,
       ),
+    );
+  }
+}
+
+class UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    return TextEditingValue(
+      text: newValue.text?.toUpperCase(),
+      selection: newValue.selection,
     );
   }
 }

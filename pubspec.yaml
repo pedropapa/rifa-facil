@@ -1,4 +1,4 @@
-name: rifa
+name: Rifa
 description: A new Flutter project.
 
 # The following line prevents the package from being accidentally published to
@@ -29,6 +29,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.3
   localstorage: ^3.0.0
+  share: <2.0.0
+  csv: ^4.0.0
+  path_provider: ^1.0.0
 
 dev_dependencies:
   flutter_test:
