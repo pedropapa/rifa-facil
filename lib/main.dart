@@ -59,6 +59,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final _ctlNome = TextEditingController();
+  final FocusNode _nomeFocus = FocusNode();
   final formKey = GlobalKey<FormState>(debugLabel: 'form');
   final LocalStorage storage = new LocalStorage('rifa-lista-numeros');
   final LocalStorage associados = new LocalStorage('rifa-lista-associados');
@@ -116,6 +117,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
       _ctlNome.text = '';
     });
+
+    _nomeFocus.unfocus();
 
     if (numerosRifa.length > 0) {
       this.proximoNumero();
@@ -268,6 +271,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     keyboardType: TextInputType.text,
                     keyboardAppearance: Brightness.light,
                     textInputAction: TextInputAction.done,
+                    focusNode: _nomeFocus,
                     maxLength: 100,
                     inputFormatters: [
                       UpperCaseTextFormatter(),
