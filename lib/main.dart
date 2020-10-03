@@ -71,8 +71,15 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
+    inicializar();
+  }
+
+  void inicializar() async {
+    await storage.ready;
+    await associados.ready;
+
     if (storage.getItem('numeros') == null) {
-      storage.setItem('numeros', new List<int>.generate(10, (i) => i + 1));
+      storage.setItem('numeros', new List<int>.generate(10000, (i) => i + 1));
     }
 
     if (associados.getItem('lista') == null) {
@@ -106,6 +113,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
       bancoAssociados[_ctlNome.text] = numeroAtual;
       associados.setItem('lista', bancoAssociados);
+
+      _ctlNome.text = '';
     });
 
     if (numerosRifa.length > 0) {
@@ -185,7 +194,9 @@ class _MyHomePageState extends State<MyHomePage> {
                             TableRow(children: [
                               TableCell(
                                   child: Container(
-                                      color: (bancoAssociados[x] % 2 == 0) ? Colors.grey : Colors.white,
+                                      color: (bancoAssociados[x] % 2 == 0)
+                                          ? Colors.grey
+                                          : Colors.white,
                                       child: Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.spaceAround,
