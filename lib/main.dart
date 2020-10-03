@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:localstorage/localstorage.dart';
 
 void main() {
   runApp(MyApp());
@@ -9,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Sistema básico de Rifa',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -26,7 +29,7 @@ class MyApp extends StatelessWidget {
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Sistema básico de Rifa'),
     );
   }
 }
@@ -50,68 +53,159 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  final _ctlNome = TextEditingController();
+  final formKey = GlobalKey<FormState>(debugLabel: 'form');
+  final LocalStorage storage = new LocalStorage('rifa-lista-numeros');
+  List numerosRifa;
+  int numeroAtual;
 
-  void _incrementCounter() {
+  @override
+  void initState() {
+    super.initState();
+
+    if (storage.getItem('numeros') == null) {
+      storage.setItem('numeros', new List<int>.generate(10, (i) => i + 1));
+    }
+
+    var numbers = storage.getItem('numeros') as List;
+
+    numerosRifa = numbers;
+
+    this.proximoNumero();
+  }
+
+  void proximoNumero() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      numeroAtual = numerosRifa[Random().nextInt(numerosRifa.length)];
     });
+  }
+
+  void associarNumero() {
+    if (!formKey.currentState.validate()) return;
+
+    numerosRifa.remove(numeroAtual);
+    storage.setItem('numeros', numerosRifa);
+
+    this.proximoNumero();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+          child: SafeArea(
+        minimum: const EdgeInsets.only(bottom: 20.0),
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Form(
+                key: formKey,
+                child: Column(
+                  children: [
+                    ConstrainedText(
+                      maxWidthEms: 16.0,
+                      style: Theme.of(context).textTheme.subtitle1,
+                      child: const Text(
+                        'Digite o nome da pessoa',
+                      ),
+                    ),
+                    const SizedBox(height: 12.0),
+                    TextFormField(
+                      controller: _ctlNome,
+                      decoration: const InputDecoration(helperText: ''),
+                      keyboardType: TextInputType.text,
+                      keyboardAppearance: Brightness.light,
+                      textInputAction: TextInputAction.done,
+                      maxLength: 100,
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return 'Informe o nome';
+                        }
+                        return null;
+                      },
+                      maxLengthEnforced: true,
+//                    onFieldSubmitted: (senha) => _confirmar(context, senha),
+                      style: const TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                'Número: $numeroAtual',
+                style: Theme.of(context).textTheme.headline4,
+              ),
+              SizedBox(
+                height: 20.0,
+              ),
+              FlatButton(
+                onPressed: associarNumero,
+                padding: const EdgeInsets.all(24.0),
+                color: Colors.blue,
+                highlightColor: Colors.transparent,
+                textColor: const Color(0xFFFFFFFF),
+                shape: const Border(),
+                child: Text('Associar'),
+              )
+            ],
+          ),
         ),
+      )),
+    );
+  }
+}
+
+class ConstrainedText extends StatelessWidget {
+  const ConstrainedText({
+    Key key,
+    @required this.maxWidthEms,
+    this.minLines,
+    this.style,
+    this.textAlign,
+    this.margin = EdgeInsets.zero,
+    @required this.child,
+  }) : super(key: key);
+
+  final double maxWidthEms;
+  final double minLines;
+  final TextStyle style;
+  final TextAlign textAlign;
+  final EdgeInsetsGeometry margin;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    var defaultStyle = DefaultTextStyle.of(context);
+    var style = defaultStyle.style.merge(this.style);
+    var textAlign = this.textAlign ?? defaultStyle.textAlign;
+    var child = DefaultTextStyle(style: style, child: this.child);
+
+    if (maxWidthEms == null && minLines == null) return child;
+
+    return Align(
+      alignment: textAlign == TextAlign.center
+          ? AlignmentDirectional.topCenter
+          : AlignmentDirectional.topStart,
+      child: Container(
+        margin: margin,
+        constraints: BoxConstraints(
+          maxWidth: maxWidthEms == null
+              ? double.infinity
+              : style.fontSize * maxWidthEms,
+          minHeight: minLines == null
+              ? 0.0
+              : minLines * (style.height ?? 1.4) * style.fontSize,
+        ),
+        child: child,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
