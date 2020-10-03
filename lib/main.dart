@@ -56,8 +56,11 @@ class _MyHomePageState extends State<MyHomePage> {
   final _ctlNome = TextEditingController();
   final formKey = GlobalKey<FormState>(debugLabel: 'form');
   final LocalStorage storage = new LocalStorage('rifa-lista-numeros');
+  final LocalStorage associados = new LocalStorage('rifa-lista-associados');
   List numerosRifa;
   int numeroAtual;
+
+  Map<String, int> bancoAssociados = new Map<String, int>();
 
   @override
   void initState() {
@@ -69,7 +72,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
     var numbers = storage.getItem('numeros') as List;
 
-    numerosRifa = numbers;
+    setState(() {
+      numerosRifa = numbers;
+    });
 
     this.proximoNumero();
   }
@@ -83,69 +88,105 @@ class _MyHomePageState extends State<MyHomePage> {
   void associarNumero() {
     if (!formKey.currentState.validate()) return;
 
-    numerosRifa.remove(numeroAtual);
-    storage.setItem('numeros', numerosRifa);
+    setState(() {
+      numerosRifa.remove(numeroAtual);
+      storage.setItem('numeros', numerosRifa);
 
-    this.proximoNumero();
+//      bancoAssociados.addAll([]);
+    });
+
+    if (numerosRifa.length > 0) {
+      this.proximoNumero();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-          child: SafeArea(
-        minimum: const EdgeInsets.only(bottom: 20.0),
-        child: Padding(
-          padding: EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Form(
-                key: formKey,
-                child: Column(
-                  children: [
-                    ConstrainedText(
-                      maxWidthEms: 16.0,
-                      style: Theme.of(context).textTheme.subtitle1,
-                      child: const Text(
-                        'Digite o nome da pessoa',
-                      ),
+    return DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            bottom: TabBar(
+              tabs: [
+                Tab(icon: Icon(Icons.create)),
+                Tab(icon: Icon(Icons.list)),
+              ],
+            ),
+            title: Text(widget.title),
+          ),
+          body: TabBarView(children: [
+            _buildCriacao(),
+            _buildLista(),
+          ]),
+        ));
+  }
+
+  Widget _buildLista() {
+    return Text('todo');
+  }
+
+  Widget _buildCriacao() {
+    return Center(
+        child: SafeArea(
+      minimum: const EdgeInsets.only(bottom: 20.0),
+      child: Padding(
+        padding: EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Form(
+              key: formKey,
+              child: Column(
+                children: [
+                  ConstrainedText(
+                    maxWidthEms: 16.0,
+                    style: Theme.of(context).textTheme.subtitle1,
+                    child: const Text(
+                      'Digite o nome da pessoa',
                     ),
-                    const SizedBox(height: 12.0),
-                    TextFormField(
-                      controller: _ctlNome,
-                      decoration: const InputDecoration(helperText: ''),
-                      keyboardType: TextInputType.text,
-                      keyboardAppearance: Brightness.light,
-                      textInputAction: TextInputAction.done,
-                      maxLength: 100,
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return 'Informe o nome';
-                        }
-                        return null;
-                      },
-                      maxLengthEnforced: true,
+                  ),
+                  const SizedBox(height: 12.0),
+                  TextFormField(
+                    controller: _ctlNome,
+                    decoration: const InputDecoration(helperText: ''),
+                    keyboardType: TextInputType.text,
+                    keyboardAppearance: Brightness.light,
+                    textInputAction: TextInputAction.done,
+                    maxLength: 100,
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return 'Informe o nome';
+                      }
+                      return null;
+                    },
+                    maxLengthEnforced: true,
 //                    onFieldSubmitted: (senha) => _confirmar(context, senha),
-                      style: const TextStyle(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    style: const TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
+            SizedBox(
+              height: 20.0,
+            ),
+            if (numerosRifa.length > 0)
               Text(
                 'Número: $numeroAtual',
                 style: Theme.of(context).textTheme.headline4,
               ),
-              SizedBox(
-                height: 20.0,
+            if (numerosRifa.length == 0)
+              Text(
+                'Não há mais números disponíveis :(',
+                style: Theme.of(context).textTheme.headline4,
               ),
+            SizedBox(
+              height: 20.0,
+            ),
+            if (numerosRifa.length > 0)
               FlatButton(
                 onPressed: associarNumero,
                 padding: const EdgeInsets.all(24.0),
@@ -155,11 +196,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 shape: const Border(),
                 child: Text('Associar'),
               )
-            ],
-          ),
+          ],
         ),
-      )),
-    );
+      ),
+    ));
   }
 }
 
