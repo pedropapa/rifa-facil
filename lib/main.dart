@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
@@ -101,7 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void proximoNumero() {
     setState(() {
-      numeroAtual = numerosRifa[Random().nextInt(numerosRifa.length)];
+      numeroAtual = numerosRifa[0];
     });
   }
 
@@ -144,6 +143,22 @@ class _MyHomePageState extends State<MyHomePage> {
             _buildLista(),
           ]),
         ));
+  }
+
+  List listaNomes() {
+    if (bancoAssociados == null) {
+      return new List<dynamic>();
+    }
+
+    var lista = bancoAssociados.values.toList();
+    lista.sort((nomeA, nomeB) => nomeA.compareTo(nomeB));
+
+    return lista;
+  }
+
+  String obterNome(int numero) {
+    return bancoAssociados.keys
+        .firstWhere((element) => bancoAssociados[element] == numero);
   }
 
   Widget _buildLista() {
@@ -193,11 +208,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     Table(
                       children: [
                         if (bancoAssociados != null)
-                          for (var x in bancoAssociados.keys)
+                          for (var x in listaNomes())
                             TableRow(children: [
                               TableCell(
                                   child: Container(
-                                      color: (bancoAssociados[x] % 2 == 0)
+                                      color: (x % 2 == 0)
                                           ? Colors.grey
                                           : Colors.white,
                                       child: Row(
@@ -206,16 +221,16 @@ class _MyHomePageState extends State<MyHomePage> {
                                           children: [
                                             SizedBox(
                                               width: 120.0,
-                                              child: Text(x),
+                                              child: Text(obterNome(x)),
                                             ),
-                                            Text(bancoAssociados[x].toString()),
+                                            Text(x.toString()),
                                             FlatButton(
                                               onPressed: () async {
                                                 setState(() {
                                                   numerosRifa
-                                                      .add(bancoAssociados[x]);
+                                                      .add(x);
 
-                                                  bancoAssociados.remove(x);
+                                                  bancoAssociados.remove(obterNome(x));
                                                   associados.setItem(
                                                       'lista', bancoAssociados);
 
