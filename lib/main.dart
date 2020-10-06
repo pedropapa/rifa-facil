@@ -169,12 +169,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 padding: EdgeInsets.all(20.0),
                 child: Column(
                   children: [
-                    if (bancoAssociados.length == 0)
+                    if (bancoAssociados?.length == 0)
                       Text(
                         'Nenhum nome associado',
                         style: Theme.of(context).textTheme.headline4,
                       ),
-                    if (bancoAssociados.length > 0)
+                    if (bancoAssociados != null && bancoAssociados.length > 0)
                       FlatButton(
                         onPressed: () async {
                           List<List<dynamic>> lista = new List<List<dynamic>>();
@@ -227,10 +227,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                             FlatButton(
                                               onPressed: () async {
                                                 setState(() {
-                                                  numerosRifa
-                                                      .add(x);
+                                                  numerosRifa.add(x);
 
-                                                  bancoAssociados.remove(obterNome(x));
+                                                  bancoAssociados
+                                                      .remove(obterNome(x));
                                                   associados.setItem(
                                                       'lista', bancoAssociados);
 
@@ -313,12 +313,12 @@ class _MyHomePageState extends State<MyHomePage> {
             SizedBox(
               height: 20.0,
             ),
-            if (numerosRifa.length > 0)
+            if (numerosRifa != null && numerosRifa.length > 0)
               Text(
                 'Número: $numeroAtual',
                 style: Theme.of(context).textTheme.headline4,
               ),
-            if (numerosRifa.length == 0)
+            if (numerosRifa?.length == 0)
               Text(
                 'Não há mais números disponíveis :(',
                 style: Theme.of(context).textTheme.headline4,
@@ -326,7 +326,7 @@ class _MyHomePageState extends State<MyHomePage> {
             SizedBox(
               height: 20.0,
             ),
-            if (numerosRifa.length > 0)
+            if (numerosRifa != null && numerosRifa.length > 0)
               FlatButton(
                 onPressed: associarNumero,
                 padding: const EdgeInsets.all(24.0),
