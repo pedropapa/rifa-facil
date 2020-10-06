@@ -16,24 +16,24 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Sistema básico de Rifa',
+      title: 'Rifa Fácil',
       theme: ThemeData(
         // This is the theme of your application.
         //
         // Try running your application with "flutter run". You'll see the
         // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
+        // changing the primarySwatch below to Color(0x034511 and then invoke
         // "hot reload" (press "r" in the console where you ran "flutter run",
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
-        primarySwatch: Colors.blue,
+        primaryColor: Color(0xFF034511),
         // This makes the visual density adapt to the platform that you run
         // the app on. For desktop platforms, the controls will be smaller and
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: 'Sistema básico de Rifa'),
+      home: MyHomePage(title: 'Rifa Fácil'),
     );
   }
 }
@@ -131,6 +131,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Scaffold(
           appBar: AppBar(
             bottom: TabBar(
+              indicatorColor: Color(0xFF034511),
               tabs: [
                 Tab(icon: Icon(Icons.create)),
                 Tab(icon: Icon(Icons.list)),
@@ -196,7 +197,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           Share.shareFiles([file.path]);
                         },
                         padding: const EdgeInsets.all(24.0),
-                        color: Colors.blue,
+                        color: Color(0xFF034511),
                         highlightColor: Colors.transparent,
                         textColor: const Color(0xFFFFFFFF),
                         shape: const Border(),
@@ -330,7 +331,7 @@ class _MyHomePageState extends State<MyHomePage> {
               FlatButton(
                 onPressed: associarNumero,
                 padding: const EdgeInsets.all(24.0),
-                color: Colors.blue,
+                color: Color(0xFF034511),
                 highlightColor: Colors.transparent,
                 textColor: const Color(0xFFFFFFFF),
                 shape: const Border(),
